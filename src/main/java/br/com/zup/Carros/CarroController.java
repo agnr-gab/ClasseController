@@ -1,22 +1,61 @@
 package br.com.zup.Carros;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import dtos.CarroDTO;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
-@Controller
+@RestController
+@RequestMapping("/carros")
+
 public class CarroController {
+    private List<CarroDTO> listaCarros = new ArrayList<>();
 
-    @GetMapping ("/carro/fusca")
-    @ResponseBody
-    public HashMap<String, String> exibirFusca(){
-        HashMap<String, String> fusca = new HashMap<>();
-        fusca.put("Cor", "Preto");
-        fusca.put("Ano","1984");
-        fusca.put("Motor","1000");
+    @GetMapping
+    private List<CarroDTO> exibirCarros() {
+        return listaCarros;
+    }
 
-        return fusca;
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public void cadastrarCarro(@RequestBody CarroDTO carroDTO) {
+        listaCarros.add(carroDTO);
+    }
+
+    @GetMapping("/{nomeCarro}")
+   /* public CarroDTO exibirCarro(@PathVariable String nomeCarro) {
+        for (CarroDTO referencia : listaCarros) {
+            if (referencia.getModelo().equals(nomeCarro)) {
+                return referencia;
+            }
+        }
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    }
+
+}*/
+    public CarroDTO exibirCarro(@PathVariable String nomeCarro) {
+        Optional<CarroDTO> optionalCarroDTO = listaCarros.stream().filter(referencia -> referencia.getModelo().
+                equalsIgnoreCase(nomeCarro)).findFirst();
+        if (optionalCarroDTO.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Não encontrado");
+        }
+        return optionalCarroDTO.get();
+    }
+
+    @PutMapping("/{atualizarCarro}")
+    public CarroDTO atualizarCarro(@PathVariable String atualizaCarro, @RequestBody CarroDTO carroDTO) {
+        for (CarroDTO referencia : listaCarros) {
+            if (referencia.getModelo().equalsIgnoreCase(atualizaCarro)) {
+                referencia.setAno(carroDTO.getAno());
+                referencia.setCor(carroDTO.getCor());
+                referencia.setMotor(carroDTO.getMotor());
+                return referencia;
+            }
+        }
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
 }
